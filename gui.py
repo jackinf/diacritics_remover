@@ -1,0 +1,127 @@
+import tkinter as tk
+from tkinter import filedialog, messagebox
+import pandas as pd
+import unidecode
+import re
+
+
+def convert_to_string(value):
+    """Convert value to string, return empty string if conversion fails."""
+    try:
+        return str(value) if not pd.isna(value) else ""
+    except:
+        return ""
+
+
+def remove_diacritics(text):
+    text = convert_to_string(text)
+    return unidecode.unidecode(text)
+
+
+def fix_spaces(text):
+    text = convert_to_string(text)
+    return text.replace(" ", "")
+
+
+def fix_dot_dash(text):
+    text = convert_to_string(text)
+    return text.replace("-", "").replace(".", "")
+
+
+def fix_comma_apostrophe(text):
+    text = convert_to_string(text)
+    return text.replace(",", "").replace("'", "").replace("/", "").replace("#", "")
+
+
+def remove_brackets(text):
+    text = convert_to_string(text)
+    text = re.sub(r'\(.*?\)', '', text)
+    return ' '.join(text.split())
+
+
+def process_excel(input_file, output_file):
+    # Read the Excel file
+    df = pd.read_excel(input_file, sheet_name=0)
+
+    # Define header names for transformations
+    transformations = {
+        "Worker": [remove_brackets, remove_diacritics, fix_dot_dash, fix_comma_apostrophe],
+        "Team Member ID": [],
+        "Grafana Email": [],
+        "Active Status": [remove_diacritics],
+        "Termination Date": [],
+        "Legacy ID": [],
+        "Legal Name - First Name": [remove_diacritics, fix_dot_dash, fix_comma_apostrophe],
+        "Legal Name - Last Name": [remove_diacritics, fix_dot_dash, fix_comma_apostrophe],
+        "Company": [remove_diacritics],
+        "Pay Group": [remove_diacritics],
+        "Primary Address - Formatted Line 1": [remove_diacritics, fix_dot_dash, fix_comma_apostrophe],
+        "Primary Address - Formatted Line 2": [remove_diacritics, fix_dot_dash, fix_comma_apostrophe],
+        "Primary Home Address - City": [remove_diacritics, fix_dot_dash, fix_comma_apostrophe],
+        "Primary Address - State/Province": [remove_diacritics, fix_dot_dash, fix_comma_apostrophe],
+        "Primary Home Address - Postal Code": [fix_dot_dash, fix_comma_apostrophe],
+        "Country": [remove_diacritics],
+        "Cost Center - ID": [],
+        "Social Security Number - Formatted": [],
+        "National Identifiers": [],
+        "Team Member Type": [],
+        "Currency": [],
+        "Account Type": [],
+        "Payment Method": [],
+        "Account Name": [remove_diacritics],
+        "IBAN": [fix_spaces],
+        "Account Number": [fix_dot_dash, fix_spaces],
+        "Bank ID": [fix_dot_dash, fix_spaces],
+        "Bank Identification Code": [],
+        "Bank Name": [remove_diacritics],
+        "Branch ID": [],
+        "Amount": [],
+        "Percent": [],
+        "Payment Order": [],
+        "Balance": []
+    }
+
+    # Process each column based on its header
+    for column in df.columns:
+        if column in transformations:
+            for func in transformations[column]:
+                df[column] = df[column].apply(lambda x: func(x))
+
+    # Save the modified DataFrame to a new Excel file
+    df.to_excel(output_file, index=False)
+    messagebox.showinfo("Success", f"Processed file saved to: {output_file}")
+
+
+def browse_file():
+    file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
+    if file_path:
+        entry_file.delete(0, tk.END)
+        entry_file.insert(0, file_path)
+
+
+def run_script():
+    input_file = entry_file.get()
+    if not input_file:
+        messagebox.showerror("Error", "Please select an input file.")
+        return
+
+    # Define output file path
+    output_file = input_file.replace('.xlsx', '_processed.xlsx')
+
+    # Process the Excel file
+    process_excel(input_file, output_file)
+
+
+# Create the main window
+root = tk.Tk()
+root.title("Excel Processor")
+
+# Create and place widgets
+tk.Label(root, text="Select Excel file:").pack(pady=5)
+entry_file = tk.Entry(root, width=50)
+entry_file.pack(pady=5)
+tk.Button(root, text="Browse", command=browse_file).pack(pady=5)
+tk.Button(root, text="Process", command=run_script).pack(pady=10)
+
+# Start the GUI event loop
+root.mainloop()

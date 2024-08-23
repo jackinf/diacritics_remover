@@ -1,16 +1,22 @@
 # Description
 
-Prepare
+## Prepare
 ```
-python -m venv venv
-./venv/bin/activate  # for Mac
-./venv/Scripts/Activate.bat  # for Windows
+python -m venv .venv
+./.venv/bin/activate  # for Mac
+./.venv/Scripts/Activate.bat  # for Windows
 pip install -r requirements.txt
 ```
 
-Run
+## Run
 ```bash
 python main.py your_file.xlsx
 ```
 
 outputs `your_file_processed.xlsx`
+
+## Gui mode
+
+```bash
+python gui.py
+```

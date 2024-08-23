@@ -1,4 +1,7 @@
 .idea
 dist
 build
+output
 main.spec
+.venv
+venv

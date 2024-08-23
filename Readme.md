@@ -2,10 +2,15 @@
 
 Prepare
 ```
-python install -r requirements.txt
+python -m venv venv
+./venv/bin/activate  # for Mac
+./venv/Scripts/Activate.bat  # for Windows
+pip install -r requirements.txt
 ```
 
-Run with
+Run
 ```bash
-python main.py sample_data.xlsx sample_data_processed.xlsx
+python main.py your_file.xlsx
 ```
+
+outputs `your_file_processed.xlsx`

@@ -2,20 +2,33 @@ import pandas as pd
 import unidecode
 import re
 import argparse
+import os
+
+def convert_to_string(value):
+    """Convert value to string, return empty string if conversion fails."""
+    try:
+        return str(value) if not pd.isna(value) else ""
+    except:
+        return ""
 
 def remove_diacritics(text):
+    text = convert_to_string(text)
     return unidecode.unidecode(text)
 
 def fix_spaces(text):
+    text = convert_to_string(text)
     return text.replace(" ", "")
 
 def fix_dot_dash(text):
+    text = convert_to_string(text)
     return text.replace("-", "").replace(".", "")
 
 def fix_comma_apostrophe(text):
+    text = convert_to_string(text)
     return text.replace(",", "").replace("'", "").replace("/", "").replace("#", "")
 
 def remove_brackets(text):
+    text = convert_to_string(text)
     text = re.sub(r'\(.*?\)', '', text)
     return ' '.join(text.split())
 
@@ -65,7 +78,7 @@ def process_excel(input_file, output_file):
     for column in df.columns:
         if column in transformations:
             for func in transformations[column]:
-                df[column] = df[column].astype(str).apply(func)
+                df[column] = df[column].apply(lambda x: func(x))
 
     # Save the modified DataFrame to a new Excel file
     df.to_excel(output_file, index=False)
@@ -75,10 +88,16 @@ def main():
     # Create argument parser
     parser = argparse.ArgumentParser(description="Process an Excel file with specified transformations.")
     parser.add_argument('input_file', type=str, help='The name of the input Excel file (e.g., input_file.xlsx)')
-    parser.add_argument('output_file', type=str, help='The name of the output Excel file (e.g., output_file_processed.xlsx)')
+    parser.add_argument('output_file', type=str, nargs='?', default=None,
+                        help='The name of the output Excel file (e.g., output_file_processed.xlsx). If not provided, will append "_processed" to the input file name.')
 
     # Parse arguments
     args = parser.parse_args()
+
+    # Determine the output file name
+    if args.output_file is None:
+        base, ext = os.path.splitext(args.input_file)
+        args.output_file = f"{base}_processed{ext}"
 
     # Process the Excel file
     process_excel(args.input_file, args.output_file)

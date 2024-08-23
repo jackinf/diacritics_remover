@@ -1,6 +1,7 @@
 import pandas as pd
 import unidecode
 import re
+import argparse
 
 def remove_diacritics(text):
     return unidecode.unidecode(text)
@@ -18,9 +19,9 @@ def remove_brackets(text):
     text = re.sub(r'\(.*?\)', '', text)
     return ' '.join(text.split())
 
-def process_excel(file_path):
+def process_excel(input_file, output_file):
     # Read the Excel file
-    df = pd.read_excel(file_path, sheet_name=0)
+    df = pd.read_excel(input_file, sheet_name=0)
 
     # Define header names for transformations
     transformations = {
@@ -67,11 +68,20 @@ def process_excel(file_path):
                 df[column] = df[column].astype(str).apply(func)
 
     # Save the modified DataFrame to a new Excel file
-    output_file_path = file_path.replace(".xlsx", "_processed.xlsx")
-    df.to_excel(output_file_path, index=False)
-    print(f"Processed file saved to: {output_file_path}")
+    df.to_excel(output_file, index=False)
+    print(f"Processed file saved to: {output_file}")
 
+def main():
+    # Create argument parser
+    parser = argparse.ArgumentParser(description="Process an Excel file with specified transformations.")
+    parser.add_argument('input_file', type=str, help='The name of the input Excel file (e.g., input_file.xlsx)')
+    parser.add_argument('output_file', type=str, help='The name of the output Excel file (e.g., output_file_processed.xlsx)')
 
-if __name__ == '__main__':
-    # Example usage
-    process_excel('sample_data.xlsx')
+    # Parse arguments
+    args = parser.parse_args()
+
+    # Process the Excel file
+    process_excel(args.input_file, args.output_file)
+
+if __name__ == "__main__":
+    main()
